@@ -32,37 +32,28 @@ export class AirQualityService {
     startDate?: string,
     endDate?: string,
   ): Promise<any> {
-    const validColumns = [
-      'co',
-      'benzene',
-      'no2',
-      'nox',
-      'temperature',
-      'humidity',
-      'ah',
-    ];
-    if (!validColumns.includes(parameter)) {
-      throw new BadRequestException(`Invalid parameter: ${parameter}`);
-    }
     const queryBuilder =
       this.airQualityRepository.createQueryBuilder('air_quality');
 
-    queryBuilder.select(['air_quality.timestamp', `air_quality.${parameter}`]);
+    if(parameter) {
+      queryBuilder
+        .select(['date', 'time', `air_quality.${parameter} as ${parameter}`]);
+    }
 
     if (startDate) {
-      queryBuilder.andWhere('air_quality.date >= :startDate', {
+      queryBuilder.andWhere('date >= :startDate', {
         startDate,
       });
     }
 
     if (endDate) {
-      queryBuilder.andWhere('air_quality.timedatestamp <= :endDate', {
+      queryBuilder.andWhere('date <= :endDate', {
         endDate,
       });
     }
 
     return await queryBuilder
-      .orderBy('air_quality.timestamp', 'ASC')
+      .orderBy('air_quality.date', 'ASC')
       .getRawMany();
   }
 }
